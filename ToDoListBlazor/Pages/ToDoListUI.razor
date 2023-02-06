@@ -1,0 +1,76 @@
+﻿@page "/"
+@page "/ToDoList"
+@inject ToDoListService toDoListService
+@inject NavigationManager navigationManager
+
+<h2>To do list app</h2>
+<hr />
+
+<h4>Create a to do list!</h4>
+<input @bind-value="@title" placeholder="Enter a title" />
+<button class="btn btn-dark" @onclick="@AddToDoList">Create list</button>
+@if (createdListSuccefully)
+{
+    <p>New list created with title: @title</p>
+}
+<hr>
+
+@if (toDoListResponse is null)
+{
+    <div class="h4">Loading...</div>
+}
+else if (toDoListResponse.success == false)
+{
+        <p>Failed Request</p>
+        <p>@toDoListResponse.message</p>
+}
+else
+{   
+    foreach (var toDoList in toDoListResponse.data)
+    {
+            <h2>@toDoList.title</h2>
+            @if (toDoList.tasks.Count() == 0)
+            {
+                <p class ="mx-4">No tasks currently avalible for this list</p>
+            }
+            else
+            {
+                for (int i = 0; i < toDoList.tasks.Count(); i++)
+                {
+                    <p class="mx-4">task @(i + 1): @toDoList.tasks[i].description</p>
+
+                }
+            }
+        <a class="btn btn-dark" href="/ToDoListSingle/@toDoList.id">Choose list</a>
+        <br />
+        <hr />
+    }
+}
+
+@code {
+    ServiceResponse<List<ToDoList>> toDoListResponse;
+    string title = string.Empty;
+    int listId;
+    bool createdListSuccefully = false;
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        loadToDoLists();
+    }
+
+    public async void loadToDoLists()
+    {
+        toDoListResponse = await toDoListService.GetAllToDoLists();
+        StateHasChanged();
+    }
+
+    public async void AddToDoList()
+    {
+        if (string.IsNullOrWhiteSpace(title) == false)
+        {
+            await toDoListService.AddToDoList(title);
+            createdListSuccefully = true;
+            loadToDoLists();
+        }
+    }
+}

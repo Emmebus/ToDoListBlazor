@@ -1,0 +1,176 @@
+﻿@page "/ToDoListSingle/{listId:int}"
+@inject ToDoListService toDoListService
+@inject NavigationManager navigationManager
+
+<h2>To do list</h2>
+<hr />
+
+@if (toDoListResponse is null)
+{
+    <div class="h4">Loading...</div>
+}
+else if (toDoListResponse.success == false)
+{
+    <p>Failed Request</p>
+    <p>@toDoListResponse.message</p>
+    <p>Try Again..</p>
+}
+else
+{
+    <h3 class="">@toDoListResponse.data.title - Id @toDoListResponse.data.id</h3>
+
+    for (int i = 0; i < toDoListResponse.data.tasks.Count(); i++)
+    {
+        int CurrentTaskId = @toDoListResponse.data.tasks[i].id;
+
+        <p class="p-1 @(taskId == @toDoListResponse.data.tasks[i].id ? "border border-2 bg-light":"")"
+        @onclick="(()=>updateTaskId(CurrentTaskId))">
+            task @(i + 1):  @toDoListResponse.data.tasks[i].description - @(@toDoListResponse.data.tasks[i].isCompleted ? "(X)" : "( )")
+        </p>
+    }
+    <br />
+    <hr />
+
+    <h4>Add new task to list</h4>
+    <input @bind-value="@description" placeholder="Enter description"/>
+    <button class="btn btn-dark" @onclick="@addTask">Add task to list</button>
+    <p>@(addTaskSucces ? "New task added!":"")</p>
+    <br />
+    <hr />
+
+    <h4>Edit the title of current list</h4>
+    <input @bind-value="@newTitle" placeholder="Enter new title" />
+    <button class="btn btn-dark" @onclick="updateToDoList">Edit current list</button>
+    <p>@(updateToDoListSucces ? "Title updated" : "")</p>
+    <br />
+    <hr />
+    
+    <h4>Edit a task</h4>
+    <p>Mark the task you want to edit by clicking it</p>
+    <p class="fw-bold">@(taskId == 0 ? "No task choosen" : "")</p>
+    <input class="my-2" @bind-value="@newDescription" placeholder="Enter new description" /> <br />
+    <input @bind-value="@newToDoListId" placeholder="Enter new to do list id" /> <br />
+    <p>Change completed status <input type="checkbox" @bind-value="@changeCompleted" /></p>
+    <p>@(updateTaskError ? "Unable to update, try again" : "")</p>
+    <p>@(updateTaskError ? "Rememeber that you have to enter a valid to do list ID for an existing list" : "")</p>
+    <button @onclick="updateTask" >Edit choosen task</button>
+    <br />
+    <hr />
+
+    <button @onclick="@(()=>confirmDeleteTask = true)" >Delete choosen task</button>
+    if (confirmDeleteTask)
+    {
+        <button @onclick="@(()=>{deleteTask();confirmDeleteTask = false;} )">Yes</button>
+        <button @onclick="@(()=>confirmDeleteTask = false)">No</button>
+    }
+    <p>@(deleteTaskSucces ? "Task deleted!" : "")</p>
+    <br />
+    <hr />
+
+    <button @onclick="@(()=>confirmDeleteToDoList = true)">Delete current list</button>
+    if (confirmDeleteToDoList)
+    {
+        <button @onclick="deleteToDoList">Yes</button>
+        <button @onclick="@(()=>confirmDeleteTask = false)">No</button>
+    }
+    <br />
+    <hr />
+}
+
+<a href="/ToDoList">Go back</a>
+
+@code {
+    [Parameter]
+    public int listId { get; set; }
+
+    int taskId = 0;
+    string description;
+    string newTitle;
+    string? newDescription;
+    bool newCompleted;
+    int? newToDoListId;
+
+    bool addTaskSucces = false;
+    bool updateToDoListSucces = false;
+    bool updateTaskSucces = false;
+    bool deleteTaskSucces = false;
+    bool updateTaskError = false;
+    bool confirmDeleteTask = false;
+    bool confirmDeleteToDoList = false;
+    bool changeCompleted;
+
+    ServiceResponse<ToDoList> toDoListResponse;
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        loadToDoLists();
+    }
+
+    public async void loadToDoLists()
+    {
+        toDoListResponse = await toDoListService.GetToDoListById(listId);
+        StateHasChanged();
+    }
+
+    public void updateTaskId(int newId)
+    {
+        taskId = newId;
+    }
+
+    public async void addTask()
+    {
+        if (string.IsNullOrWhiteSpace(description) == false)
+        {
+            await toDoListService.AddTask(description, listId);
+            addTaskSucces = true;
+            loadToDoLists();
+        }
+    }
+
+
+    public async void updateToDoList()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle) == false)
+        {
+            toDoListResponse = await toDoListService.UpdateToDoList(listId, newTitle);
+            updateToDoListSucces = true;
+            loadToDoLists();
+        }
+    }
+
+    public async void updateTask()
+    {
+        if (changeCompleted)
+        {
+            newCompleted = !toDoListResponse.data.tasks.FirstOrDefault(x => x.id == taskId).isCompleted;
+        }
+        if (taskId != 0)
+        {
+            var taskResponse = await toDoListService.UpdateTask(taskId, newDescription, newCompleted, newToDoListId);
+            if (taskResponse == null)
+            {
+                updateTaskError = true;
+                StateHasChanged();
+            }
+            else
+            {
+                updateTaskSucces = true;
+                loadToDoLists();
+            }
+        }
+    }
+
+    public async void deleteToDoList()
+    {
+        toDoListResponse = await toDoListService.DeleteToDoList(listId);
+        StateHasChanged();
+        navigationManager.NavigateTo("/ToDoList");
+    }
+
+    public async void deleteTask()
+    {
+        await toDoListService.DeleteTask(taskId);
+        deleteTaskSucces = true;
+        loadToDoLists();
+    }
+}

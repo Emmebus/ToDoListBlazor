@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "7qRMAnlqqpmMKmr2zS4boRLDKsWU+Hp6mvXEE9DQkYnYjtWgy1afWRur2C84ajo1Zx88YZ7nyewUORRms/Dt2g==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\linds\\source\\repos\\ToDoListBlazor\\ToDoListBlazor\\ToDoListBlazor.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\linds\\.nuget\\packages\\system.net.http.json\\7.0.0\\system.net.http.json.7.0.0.nupkg.sha512",
+    "C:\\Users\\linds\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "C:\\Users\\linds\\.nuget\\packages\\system.text.encodings.web\\7.0.0\\system.text.encodings.web.7.0.0.nupkg.sha512",
+    "C:\\Users\\linds\\.nuget\\packages\\system.text.json\\7.0.0\\system.text.json.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
